@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">\@Hunter</string>
+    <string name="send">Tweet</string>
+</resources>

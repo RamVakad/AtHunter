@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1093030472084",
+    "firebase_url": "https://at-hunter.firebaseio.com",
+    "project_id": "at-hunter",
+    "storage_bucket": "at-hunter.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1093030472084:android:0002870a9fa71f52",
+        "android_client_info": {
+          "package_name": "com.example.athunter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1093030472084-lqr3fn2c3fcun1s6opi8m88uth8tjeeh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArrhmSfcsi5pQfp6r58JY0PI7vQaBNrZQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1093030472084-lqr3fn2c3fcun1s6opi8m88uth8tjeeh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
