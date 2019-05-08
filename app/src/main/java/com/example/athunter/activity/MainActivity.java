@@ -1,6 +1,10 @@
 package com.example.athunter.activity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -22,8 +26,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.example.athunter.R;
+import com.example.athunter.global.Statics;
 import com.example.athunter.model.Tweet;
-import com.example.athunter.config.AppConfig;
+import com.example.athunter.global.config.AppConfig;
+import com.example.athunter.service.PermissionService;
+import com.example.athunter.util.GeneralTools;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.firebase.ui.database.SnapshotParser;
@@ -59,16 +66,45 @@ public class MainActivity extends AppCompatActivity {
     private ImageView addMediaButton;
     private EditText tweetBox;
     private Button tweetButton;
+    private boolean noLocation = false;
 
     private FirebaseUser firebaseUser;
     private DatabaseReference tweetsRealtimeRef;
     private FirebaseRecyclerAdapter<Tweet, TweetPartial> recyclerAdapter;
+
+    LocationManager locationManager;
+
+    private LocationListener locationListener = new LocationListener() {
+        public void onLocationChanged(Location location) {
+            // Called when a new location is found by the network location provider.
+            //System.out.println(location.toString());
+            Statics.CURR_LOCATION = location;
+        }
+
+        public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+        public void onProviderEnabled(String provider) {}
+
+        public void onProviderDisabled(String provider) {}
+    };
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if(!PermissionService.Check_FINE_LOCATION(MainActivity.this))
+        {
+            PermissionService.Request_FINE_LOCATION(MainActivity.this,22);
+        }
+
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        try {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        } catch (SecurityException e) {
+            System.out.println("No location permissions.");
+            noLocation = true;
+        }
 
         progressBar = findViewById(R.id.progressBar);
         tweetRecyclerView = findViewById(R.id.messageRecyclerView);
@@ -91,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                         // If sign in fails, display a message to the user.
                         Log.w(TAG, "signInAnonymously:failure", task.getException());
                         Toast.makeText(MainActivity.this, "Authentication failed.",
-                                Toast.LENGTH_SHORT).show();
+                                Toast.LENGTH_LONG).show();
                     }
                 }
             });
@@ -213,12 +249,21 @@ public class MainActivity extends AppCompatActivity {
         tweetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Tweet tweet = new
-                        Tweet(tweetBox.getText().toString(),
-                        "Anonymous",
-                        null, System.currentTimeMillis());
-                tweetsRealtimeRef.push().setValue(tweet);
-                tweetBox.setText("");
+                if (noLocation) {
+                    Toast.makeText(MainActivity.this, "Location Permissions Required.",
+                            Toast.LENGTH_LONG).show();
+                } else if (!(GeneralTools.isUserInRange(Statics.CURR_LOCATION.getLatitude(), Statics.CURR_LOCATION.getLongitude()))) {
+                    Toast.makeText(MainActivity.this, "You must be around Hunter College to tweet.",
+                            Toast.LENGTH_LONG).show();
+                } else {
+                    Tweet tweet = new
+                            Tweet(tweetBox.getText().toString(),
+                            "Anonymous",
+                            null, System.currentTimeMillis());
+                    tweetsRealtimeRef.push().setValue(tweet);
+                    tweetBox.setText("");
+                }
+
             }
         });
 

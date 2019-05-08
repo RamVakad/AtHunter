@@ -1,6 +1,6 @@
 package com.example.athunter.model;
 
-import com.example.athunter.config.AppConfig;
+import com.example.athunter.global.config.AppConfig;
 import com.google.firebase.appindexing.Action;
 import com.google.firebase.appindexing.Indexable;
 import com.google.firebase.appindexing.builders.Indexables;

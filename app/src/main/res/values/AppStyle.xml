@@ -12,4 +12,11 @@
     <style name="TweetButtonStyle" parent="Widget.AppCompat.Button">
         <item name="android:textColor">@color/colorTitle</item>
     </style>
+
+    <style name="TweetSeperator">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">@color/dividerColor</item>
+    </style>
+
 </resources>
