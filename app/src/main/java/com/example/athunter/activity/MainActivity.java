@@ -25,6 +25,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.bumptech.glide.Glide;
+import com.example.athunter.BuildConfig;
 import com.example.athunter.R;
 import com.example.athunter.global.Statics;
 import com.example.athunter.model.Tweet;
@@ -34,6 +35,7 @@ import com.example.athunter.util.GeneralTools;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.firebase.ui.database.SnapshotParser;
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -48,6 +50,10 @@ import com.google.firebase.appindexing.FirebaseUserActions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.vansuita.pickimage.bean.PickResult;
+import com.vansuita.pickimage.bundle.PickSetup;
+import com.vansuita.pickimage.dialog.PickImageDialog;
+import com.vansuita.pickimage.listeners.IPickResult;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -56,7 +62,7 @@ import java.util.Date;
 //TODO: Check GPS Location
 //TODO: Media Module: partial + video
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements IPickResult {
 
     private static final String TAG = "MainActivity";
 
@@ -167,32 +173,39 @@ public class MainActivity extends AppCompatActivity {
                     viewHolder.tweetTextView.setVisibility(TextView.VISIBLE);
                     viewHolder.tweetImage.setVisibility(ImageView.GONE);
                 } else if (tweet.getImageUrl() != null) {
-                    String imageUrl = tweet.getImageUrl();
-                    if (imageUrl.startsWith("gs://")) {
-                        StorageReference storageReference = FirebaseStorage.getInstance()
-                                .getReferenceFromUrl(imageUrl);
-                        storageReference.getDownloadUrl().addOnCompleteListener(
-                                new OnCompleteListener<Uri>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Uri> task) {
-                                        if (task.isSuccessful()) {
-                                            String downloadUrl = task.getResult().toString();
-                                            Glide.with(viewHolder.tweetImage.getContext())
-                                                    .load(downloadUrl)
-                                                    .into(viewHolder.tweetImage);
-                                        } else {
-                                            Log.w(TAG, "Getting download url was not successful.",
-                                                    task.getException());
+                    try {
+                        String imageUrl = tweet.getImageUrl();
+                        //System.out.println("IMAGEURL : " + imageUrl);
+                        if (imageUrl.startsWith("gs://")) {
+                            StorageReference storageReference = FirebaseStorage.getInstance()
+                                    .getReferenceFromUrl(imageUrl);
+                            storageReference.getDownloadUrl().addOnCompleteListener(
+                                    new OnCompleteListener<Uri>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Uri> task) {
+                                            if (task.isSuccessful()) {
+                                                String downloadUrl = task.getResult().toString();
+                                                Glide.with(viewHolder.tweetImage.getContext())
+                                                        .load(downloadUrl)
+                                                        .into(viewHolder.tweetImage);
+                                            } else {
+                                                Log.w(TAG, "Getting download url was not successful.",
+                                                        task.getException());
+                                            }
                                         }
-                                    }
-                                });
-                    } else {
-                        Glide.with(viewHolder.tweetImage.getContext())
-                                .load(tweet.getImageUrl())
-                                .into(viewHolder.tweetImage);
+                                    });
+                        } else {
+                            Glide.with(viewHolder.tweetImage.getContext())
+                                    .load(tweet.getImageUrl())
+                                    .into(viewHolder.tweetImage);
+                        }
+                        viewHolder.tweetImage.setVisibility(ImageView.VISIBLE);
+                        //viewHolder.tweetTextView.setVisibility(TextView.GONE);
+                        //viewHolder.tweetTextView.setVisibility(TextView.GONE);
+                    } catch (Exception e) {
+
                     }
-                    viewHolder.tweetImage.setVisibility(ImageView.VISIBLE);
-                    viewHolder.tweetTextView.setVisibility(TextView.GONE);
+
                 }
 
                 Long millis = tweet.getTime();
@@ -271,10 +284,7 @@ public class MainActivity extends AppCompatActivity {
         addMediaButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                //intent.addCategory(Intent.CATEGORY_OPENABLE);
-                //intent.setType("image/*");
-                //startActivityForResult(intent, REQUEST_IMAGE);
+                PickImageDialog.build(new PickSetup()).show(MainActivity.this);
             }
         });
     }
@@ -284,56 +294,84 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d(TAG, "onActivityResult: requestCode=" + requestCode + ", resultCode=" + resultCode);
-
-        if (requestCode == 2) { // 2 = Image
-            if (resultCode == RESULT_OK) {
-                if (data != null) {
-                    final Uri uri = data.getData();
-                    Log.d(TAG, "Uri: " + uri.toString());
-
-                    Tweet tempMessage = new Tweet(null, "Anonymous", "LoadingImageURL", System.currentTimeMillis());
-                    tweetsRealtimeRef.push()
-                            .setValue(tempMessage, new DatabaseReference.CompletionListener() {
-                                @Override
-                                public void onComplete(DatabaseError databaseError,
-                                                       @NonNull DatabaseReference databaseReference) {
-                                    if (databaseError == null) {
-                                        String key = databaseReference.getKey();
-                                        StorageReference storageReference =
-                                                FirebaseStorage.getInstance()
-                                                        .getReference(firebaseUser.getUid())
-                                                        .child(key)
-                                                        .child(uri.getLastPathSegment());
-
-                                        putImageInStorage(storageReference, uri, key);
-                                    } else {
-                                        Log.w(TAG, "Unable to write message to database.",
-                                                databaseError.toException());
-                                    }
-                                }
-                            });
-                }
-            }
-        }
     }
 
     private void putImageInStorage(final StorageReference storageReference, Uri uri, final String key) {
-        storageReference.putFile(uri).addOnCompleteListener(MainActivity.this,
-                new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            Tweet tweet =
-                                    new Tweet(null, "Anonymous",
-                                            storageReference.getDownloadUrl().toString(), System.currentTimeMillis());
-                            tweetsRealtimeRef.child(key)
-                                    .setValue(tweet);
-                        } else {
-                            Log.w(TAG, "Image upload task was not successful.",
-                                    task.getException());
+        UploadTask uploadTask = storageReference.putFile(uri);
+        Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+            @Override
+            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                if (!task.isSuccessful()) {
+                    throw task.getException();
+                }
+
+                // Continue with the task to get the download URL
+                return storageReference.getDownloadUrl();
+            }
+        }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+            @Override
+            public void onComplete(@NonNull Task<Uri> task) {
+                if (task.isSuccessful()) {
+                    Uri downloadUri = task.getResult();
+                    String download_url = downloadUri.toString();
+                    Tweet tweet =
+                            new Tweet(null, "Anonymous",
+                                    download_url, System.currentTimeMillis());
+                    tweetsRealtimeRef.child(key)
+                            .setValue(tweet);
+                   // Toast.makeText(MainActivity.this, download_url, Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.w(TAG, "Image upload task was not successful.",
+                            task.getException());
+                }
+            }
+        });
+
+    }
+
+    @Override
+    public void onPickResult(PickResult r) {
+        if (r.getError() == null) {
+            //If you want the Uri.
+
+            //Mandatory to refresh image from Uri.
+            //getImageView().setImageURI(null);
+
+            //Setting the real returned image.
+            //getImageView().setImageURI(r.getUri());
+
+            //If you want the Bitmap.
+            //getImageView().setImageBitmap(r.getBitmap());
+
+            //Image path
+            //r.getPath();
+            final Uri uri = r.getUri();
+            Tweet tempMessage = new Tweet(null, "Anonymous", "LoadingImageURL", System.currentTimeMillis());
+            tweetsRealtimeRef.push()
+                    .setValue(tempMessage, new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(DatabaseError databaseError,
+                                               @NonNull DatabaseReference databaseReference) {
+                            if (databaseError == null) {
+                                String key = databaseReference.getKey();
+                                StorageReference storageReference =
+                                        FirebaseStorage.getInstance()
+                                                .getReference(firebaseUser.getUid())
+                                                .child(key)
+                                                .child(uri.getLastPathSegment());
+
+                                putImageInStorage(storageReference, uri, key);
+                            } else {
+                                Log.w(TAG, "Unable to write message to database.",
+                                        databaseError.toException());
+                            }
                         }
-                    }
-                });
+                    });
+        } else {
+            //Handle possible errors
+            //TODO: do what you have to do with r.getError();
+            Toast.makeText(this, r.getError().getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
