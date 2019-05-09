@@ -3,7 +3,7 @@ package com.example.athunter.global.config;
 public class AppConfig {
     public static final String TWEET_URL = "https://at-hunter.firebaseio.com/tweet/";
     public static final String REALTIME_DB_COLLECTION_NAME = "tweets";
-    public static final Integer MAX_TWEET_LENGTH = 160;
+    public static final Integer MAX_TWEET_LENGTH = 140;
     public static final Double HUNTER_LATITUDE = 40.767660586875536;
     public static final Double HUNTER_LONGITUDE = -73.96449785213919;
     //public static final int MAX_DISTANCE = 500; //In Meters

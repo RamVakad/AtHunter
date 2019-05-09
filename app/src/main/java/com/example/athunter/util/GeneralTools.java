@@ -1,12 +1,28 @@
 package com.example.athunter.util;
 
 import com.example.athunter.global.config.AppConfig;
+import com.example.athunter.model.Tweet;
+import com.firebase.ui.database.SnapshotParser;
+import com.google.firebase.database.DataSnapshot;
 
 public class GeneralTools {
 
     public static boolean isUserInRange(double latitude, double longitude) {
         double meterDistance = distance(latitude, AppConfig.HUNTER_LATITUDE, longitude, AppConfig.HUNTER_LONGITUDE, 0, 0);
         return meterDistance < AppConfig.MAX_DISTANCE;
+    }
+
+    public static SnapshotParser<Tweet> getTweetParser() {
+        return new SnapshotParser<Tweet>() {
+            @Override
+            public Tweet parseSnapshot(DataSnapshot dataSnapshot) {
+                Tweet tweet = dataSnapshot.getValue(Tweet.class);
+                if (tweet != null) {
+                    tweet.setId(dataSnapshot.getKey());
+                }
+                return tweet;
+            }
+        };
     }
 
     /**

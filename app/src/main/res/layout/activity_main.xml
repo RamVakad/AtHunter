@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
-        android:paddingBottom="5dp"
+        android:paddingBottom="3dp"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
         android:paddingTop="4dp"
@@ -30,15 +30,29 @@
         <ImageView
             android:id="@+id/addMediaButton"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
             ads:srcCompat="@drawable/ic_add_black_24dp" />
+<!--
+        <ImageView
+            android:id="@+id/imgBox"
+            android:layout_marginStart="10dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"/>
+-->
+
 
         <EditText
             android:id="@+id/tweetTextBox"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_weight="1" />
+            android:layout_weight="1">
+
+        </EditText>
+
 
         <Button
             android:id="@+id/sendButton"
