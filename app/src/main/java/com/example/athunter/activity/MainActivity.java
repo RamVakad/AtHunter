@@ -60,6 +60,7 @@ import com.vansuita.pickimage.listeners.IPickResult;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 
 //TODO: Check GPS Location
@@ -184,11 +185,18 @@ public class MainActivity extends AppCompatActivity implements IPickResult {
                 }
 
                 Long millis = tweet.getTime();
-                Date date = new Date(millis);
-                SimpleDateFormat formatter = new SimpleDateFormat("h:mm a");
-                String formatted = formatter.format(date);
+                Long diff = System.currentTimeMillis() - millis;
+                if (diff > TimeUnit.DAYS.toMillis(1)) {
+                    long days = diff / TimeUnit.DAYS.toMillis(1);
+                    viewHolder.tweetTime.setText(days + "d");
+                } else {
+                    Date date = new Date(millis);
+                    SimpleDateFormat formatter = new SimpleDateFormat("h:mm a");
+                    String formatted = formatter.format(date);
+                    viewHolder.tweetTime.setText(formatted);
+                }
 
-                viewHolder.tweetTime.setText(formatted);
+
 
                 FirebaseUserActions.getInstance().end(Tweet.getViewTweetAction(tweet));
             }
