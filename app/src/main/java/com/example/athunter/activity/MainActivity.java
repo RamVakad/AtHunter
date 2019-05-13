@@ -3,12 +3,14 @@ package com.example.athunter.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -30,7 +32,9 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
 import com.example.athunter.R;
 import com.example.athunter.global.Statics;
 import com.example.athunter.model.Tweet;
@@ -45,11 +49,13 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.appindexing.FirebaseAppIndex;
 import com.google.firebase.appindexing.FirebaseUserActions;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -86,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements IPickResult {
     private FirebaseRecyclerAdapter<Tweet, TweetPartial> recyclerAdapter;
     private boolean imageSelected = false;
     private PickResult imagePicked;
+    private ImageView fullScreenImgView;
 
     LocationManager locationManager;
 
@@ -110,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements IPickResult {
         setContentView(R.layout.activity_main);
         progressBar = findViewById(R.id.progressBar);
         tweetRecyclerView = findViewById(R.id.messageRecyclerView);
+        fullScreenImgView = findViewById(R.id.FullScreenImg);
         linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setStackFromEnd(true);
         linearLayoutManager.setReverseLayout(true);
@@ -144,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements IPickResult {
             @Override
             protected void onBindViewHolder(@NonNull final TweetPartial viewHolder, int position, @NonNull Tweet tweet) {
                 progressBar.setVisibility(ProgressBar.INVISIBLE);
-
+                viewHolder.fullScreenImgView = fullScreenImgView;
                 if (tweet.getText() != null) {
                     FirebaseAppIndex.getInstance().update(Tweet.getTweetPageable(tweet));
                     viewHolder.tweetTextView.setText(tweet.getText());
@@ -154,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements IPickResult {
                 }
 
                 if (tweet.getImageUrl() != null) {
+
                     viewHolder.tweetImage.setVisibility(ImageView.VISIBLE);
                     String imageUrl = tweet.getImageUrl();
                     try {
@@ -170,7 +179,12 @@ public class MainActivity extends AppCompatActivity implements IPickResult {
                                                     .apply(new RequestOptions()
                                                             .fitCenter()
                                                             .format(DecodeFormat.PREFER_ARGB_8888)
-                                                            .override(Target.SIZE_ORIGINAL)).into(viewHolder.tweetImage);
+                                                            .override(Target.SIZE_ORIGINAL)).into(new SimpleTarget<Drawable>(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL) {
+                                                                @Override
+                                                                public void onResourceReady(@NonNull final Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                                                                    viewHolder.tweetImage.setImageDrawable(resource);
+                                                                }
+                                                            });
                                         } else {
                                             Log.w(TAG, "Getting download url was not successful.", task.getException());
                                         }
@@ -196,7 +210,8 @@ public class MainActivity extends AppCompatActivity implements IPickResult {
                     viewHolder.tweetTime.setText(formatted);
                 }
 
-
+                viewHolder.setLikesListener(tweet.getId(), tweetsRealtimeRef);
+                viewHolder.setCommentsListener(tweet.getId(), tweetsRealtimeRef);
 
                 FirebaseUserActions.getInstance().end(Tweet.getViewTweetAction(tweet));
             }
@@ -319,7 +334,12 @@ public class MainActivity extends AppCompatActivity implements IPickResult {
             PermissionService.Request_FINE_LOCATION(MainActivity.this,22);
         }
 
-        txtBoxImgView = findViewById(R.id.addMediaButton);
+        fullScreenImgView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fullScreenImgView.setVisibility(ImageView.GONE);
+            }
+        });
     }
 
 
@@ -346,8 +366,7 @@ public class MainActivity extends AppCompatActivity implements IPickResult {
                 if (task.isSuccessful()) {
                     Uri downloadUri = task.getResult();
                     String download_url = downloadUri.toString();
-                    Tweet tweet = new Tweet(tweetBox.getText().toString(), "Anonymous", download_url, System.currentTimeMillis());
-                    tweetsRealtimeRef.child(key).setValue(tweet);
+                    tweetsRealtimeRef.child(key).child("imageUrl").setValue(download_url);
                    //Toast.makeText(MainActivity.this, download_url, Toast.LENGTH_SHORT).show();
                 } else {
                     Log.w(TAG, "Image upload task was not successful.", task.getException());

@@ -5,6 +5,9 @@ import com.google.firebase.appindexing.Action;
 import com.google.firebase.appindexing.Indexable;
 import com.google.firebase.appindexing.builders.Indexables;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Tweet {
 
     private String id;
@@ -12,6 +15,8 @@ public class Tweet {
     private String name;
     private String imageUrl;
     private Long time;
+    private Integer likes;
+    private List<Comment> comments;
 
     public Tweet() {
 
@@ -22,6 +27,8 @@ public class Tweet {
         this.name = name;
         this.imageUrl = imageUrl;
         this.time = time;
+        this.likes = 0;
+        this.comments = new ArrayList<Comment>();
     }
 
     public String getId() {
@@ -62,6 +69,22 @@ public class Tweet {
 
     public void setTime(Long time) {
         this.time = time;
+    }
+
+    public Integer getLikes() {
+        return likes;
+    }
+
+    public void setLikes(Integer likes) {
+        this.likes = likes;
+    }
+
+    public List<Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
     }
 
     public static Action getViewTweetAction(Tweet tweet) {

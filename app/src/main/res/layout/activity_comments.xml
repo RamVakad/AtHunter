@@ -23,7 +23,7 @@
 
 
         <android.support.v7.widget.RecyclerView
-            android:id="@+id/messageRecyclerView"
+            android:id="@+id/commensRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@+id/linearLayout" />
@@ -40,26 +40,8 @@
             android:paddingTop="4dp"
             android:orientation="horizontal">
 
-
-            <ImageView
-                android:id="@+id/addMediaButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                ads:srcCompat="@drawable/ic_add_black_24dp" />
-            <!--
-                    <ImageView
-                        android:id="@+id/imgBox"
-                        android:layout_marginStart="10dp"
-                        android:layout_width="80dp"
-                        android:layout_height="80dp"
-                        android:adjustViewBounds="true"
-                        android:scaleType="fitCenter"/>
-            -->
-
-
             <EditText
-                android:id="@+id/tweetTextBox"
+                android:id="@+id/commentTextBox"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
@@ -67,14 +49,13 @@
 
             </EditText>
 
-
             <Button
-                android:id="@+id/sendButton"
+                android:id="@+id/commentButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
                 android:enabled="false"
-                android:text="@string/send" />
+                android:text="@string/comment" />
 
         </LinearLayout>
 
