@@ -1,5 +1,7 @@
 package com.example.athunter.activity;
 
+import android.content.Intent;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
@@ -7,6 +9,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.athunter.R;
+import com.example.athunter.model.Comment;
+import com.example.athunter.util.GeneralTools;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -29,6 +34,7 @@ public class TweetPartial extends RecyclerView.ViewHolder {
         likeButton = itemView.findViewById(R.id.likeButton);
         numLikes = itemView.findViewById(R.id.numLikes);
         numComments = itemView.findViewById(R.id.numComments);
+
         tweetImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -37,6 +43,23 @@ public class TweetPartial extends RecyclerView.ViewHolder {
                 fullScreenImgView.setVisibility(ImageView.VISIBLE);
             }
         });
+    }
+
+    public void setCommentsListener(final String key, final DatabaseReference tweetsRealtimeRef) {
+        DatabaseReference comments = tweetsRealtimeRef.child(key).child("comments");
+        comments.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Long num = dataSnapshot.getChildrenCount();
+                numComments.setText(num == null ? "0" : Integer.parseInt(num + "") + " replies");
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("Comments listener cancelled for reason: " + databaseError.getMessage());
+            }
+        });
+
     }
 
     public void setLikesListener(final String key, final DatabaseReference tweetsRealtimeRef) {
@@ -50,7 +73,7 @@ public class TweetPartial extends RecyclerView.ViewHolder {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                System.out.println("Likes listener cancelled for reason: " + databaseError.getMessage());
             }
         });
 
@@ -63,27 +86,5 @@ public class TweetPartial extends RecyclerView.ViewHolder {
 
     }
 
-    public void setCommentsListener(final String key, final DatabaseReference tweetsRealtimeRef) {
-        DatabaseReference likes = tweetsRealtimeRef.child(key).child("likes");
-        likes.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Long num = dataSnapshot.getChildrenCount();
-                numComments.setText(num == null ? "0" : Integer.parseInt(num + "") + " replies");
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        numComments.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                System.out.println("expand comments");
-            }
-        });
-
-    }
 }

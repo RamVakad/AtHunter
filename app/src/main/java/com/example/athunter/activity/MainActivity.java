@@ -68,10 +68,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-
-//TODO: Check GPS Location
-//TODO: Media Module: partial + video
-
 public class MainActivity extends AppCompatActivity implements IPickResult {
 
     private static final String TAG = "MainActivity";
@@ -116,8 +112,8 @@ public class MainActivity extends AppCompatActivity implements IPickResult {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         progressBar = findViewById(R.id.progressBar);
-        tweetRecyclerView = findViewById(R.id.messageRecyclerView);
         fullScreenImgView = findViewById(R.id.FullScreenImg);
+        tweetRecyclerView = findViewById(R.id.messageRecyclerView);
         linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setStackFromEnd(true);
         linearLayoutManager.setReverseLayout(true);
@@ -150,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements IPickResult {
             }
 
             @Override
-            protected void onBindViewHolder(@NonNull final TweetPartial viewHolder, int position, @NonNull Tweet tweet) {
+            protected void onBindViewHolder(@NonNull final TweetPartial viewHolder, int position, @NonNull final Tweet tweet) {
                 progressBar.setVisibility(ProgressBar.INVISIBLE);
                 viewHolder.fullScreenImgView = fullScreenImgView;
                 if (tweet.getText() != null) {
@@ -212,6 +208,16 @@ public class MainActivity extends AppCompatActivity implements IPickResult {
 
                 viewHolder.setLikesListener(tweet.getId(), tweetsRealtimeRef);
                 viewHolder.setCommentsListener(tweet.getId(), tweetsRealtimeRef);
+                viewHolder.numComments.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(MainActivity.this, CommentActivity.class);
+                        intent.putExtra("KEY", tweet.getId());
+                        intent.putExtra("tweetText", tweet.getText());
+                        intent.putExtra("tweetImg", tweet.getImageUrl());
+                        startActivity(intent);
+                    }
+                });
 
                 FirebaseUserActions.getInstance().end(Tweet.getViewTweetAction(tweet));
             }
@@ -234,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements IPickResult {
                 }
                 if (lastVisiblePosition == -1 || (positionStart >= (tweetCount - 1))) {
                     //tweetRecyclerView.scrollToPosition(positionStart);
-                    Toast.makeText(MainActivity.this, "New Tweet --> Scroll Up", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(MainActivity.this, "New Tweet --> Scroll Up", Toast.LENGTH_SHORT).show();
                 }
             }
         });

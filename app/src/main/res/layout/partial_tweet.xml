@@ -76,7 +76,8 @@
         </LinearLayout>
 
 
-        <View style="@style/TweetSeperator"/>
-
+        <View
+            android:id="@+id/separator"
+            style="@style/TweetSeperator"/>
 
 </LinearLayout>

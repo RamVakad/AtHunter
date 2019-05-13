@@ -16,7 +16,6 @@ public class Tweet {
     private String imageUrl;
     private Long time;
     private Integer likes;
-    private List<Comment> comments;
 
     public Tweet() {
 
@@ -28,7 +27,6 @@ public class Tweet {
         this.imageUrl = imageUrl;
         this.time = time;
         this.likes = 0;
-        this.comments = new ArrayList<Comment>();
     }
 
     public String getId() {
@@ -77,14 +75,6 @@ public class Tweet {
 
     public void setLikes(Integer likes) {
         this.likes = likes;
-    }
-
-    public List<Comment> getComments() {
-        return comments;
-    }
-
-    public void setComments(List<Comment> comments) {
-        this.comments = comments;
     }
 
     public static Action getViewTweetAction(Tweet tweet) {

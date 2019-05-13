@@ -1,6 +1,7 @@
 package com.example.athunter.util;
 
 import com.example.athunter.global.config.AppConfig;
+import com.example.athunter.model.Comment;
 import com.example.athunter.model.Tweet;
 import com.firebase.ui.database.SnapshotParser;
 import com.google.firebase.database.DataSnapshot;
@@ -21,6 +22,19 @@ public class GeneralTools {
                     tweet.setId(dataSnapshot.getKey());
                 }
                 return tweet;
+            }
+        };
+    }
+
+    public static SnapshotParser<Comment> getCommentParser() {
+        return new SnapshotParser<Comment>() {
+            @Override
+            public Comment parseSnapshot(DataSnapshot dataSnapshot) {
+                Comment comment = dataSnapshot.getValue(Comment.class);
+                if (comment != null) {
+                    comment.setId(dataSnapshot.getKey());
+                }
+                return comment;
             }
         };
     }
